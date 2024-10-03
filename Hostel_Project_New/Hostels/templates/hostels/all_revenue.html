@@ -1,0 +1,27 @@
+{%extends 'hostels/base.html'%}
+{%block title%}
+<title>
+    All Revenue
+</title>
+{%endblock%}
+{%block body%}
+{%include 'hostels/navbar.html'%}
+<div class="col-5 mx-auto">
+    <div class="card mt-3" style="background-color: #79bbd1;">
+        <div class="card-body">
+            <h4 class="text-center"><b>All Revenue</b></h4>
+        </div>
+    </div>
+</div>
+<div class="row container mt-3">
+    {%for key,value in blocks.items %}
+    <div class="col-3">
+        <div class="card">
+            <div class="card-body">
+                {{key}} Block Revenue : {{value}}
+            </div>
+        </div>     
+    </div>
+{%endfor%}
+</div>
+{%endblock%}

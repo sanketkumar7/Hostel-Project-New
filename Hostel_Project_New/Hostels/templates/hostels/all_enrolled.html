@@ -1,0 +1,46 @@
+{%extends 'hostels/base.html' %}
+{%block title%}
+<title>
+    All Enrolled
+</title>
+{%block head%}
+<style>
+    body{
+        background-color:  #f1edf9;
+    }
+</style>
+{%endblock%}
+{%endblock%}
+{%block body%}
+{%include 'hostels/navbar.html'%}
+<table class="table table-striped">
+    <thead class="text-center">
+       <th>Sr. No.</th>
+       <th>Person Name</th>
+       <th>Person age</th>
+       <th>Paid Amount</th>
+       <th>Block Name</th>
+       <th>Room No.</th>
+       <th>Bed No.</th>
+       <th>Enrolled date</th>
+       <th>Action</th>
+    </thead>
+    <tbody class="text-center">
+        {%for each in persons reversed%}
+        <tr>
+            <td>{{forloop.counter}}</td>
+            <td>{{each.person_name}}</td>
+            <td>{{each.person_age}}</td>
+            <td>{{each.payment}}</td>
+            <td>{{each.block_name}}</td>
+            <td>{{each.room_no}}</td>
+            <td>{{each.bed_no}}</td>
+            <td>{{each.added_date}}</td>
+            <td>
+                <a href="{%url 'view_block_page' each.block_id each.user_id%}"><button class="btn btn-primary">Go to Block</button></a>
+            </td>
+        </tr>
+        {%endfor%}
+    </tbody>
+  </table>
+{%endblock%}

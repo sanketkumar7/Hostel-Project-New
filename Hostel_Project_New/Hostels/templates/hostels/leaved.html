@@ -1,0 +1,42 @@
+{%extends 'hostels/base.html' %}
+{%block title%}
+<title>
+    All Leaved
+</title>
+{%block head%}
+<style>
+    body{
+        background-color:  #f1edf9;
+    }
+</style>
+{%endblock%}
+{%endblock%}
+{%block body%}
+{%include 'hostels/navbar.html'%}
+<table class="table table-striped">
+    <thead class="text-center">
+        <th>Sr. No.</th>
+        <th>Person Name</th>
+        <th>Person age</th>
+        <th>Block Name</th>
+        <th>Enrolled Date.</th>
+        <th>Deallocation Date</th>
+        <th>Action</th>
+    </thead>
+    <tbody class="text-center">
+        {%for each in leaved%}
+            <tr>
+                <td>{{forloop.counter}}</td>
+                <td>{{each.person_name}}</td>
+                <td>{{each.person_age}}</td>
+                <td>{{each.block_name}}</td>
+                <td>{{each.added_date}}</td>
+                <td>{{each.leave_date}}</td>
+                <td>
+                    <a href="{%url 'delete_leaved_person' each.id%}"><button onclick="return confirm('Are you sure?')" class="btn btn-danger">Delete</button></a>
+                </td>
+            </tr>
+        {%endfor%}
+    </tbody>
+  </table>
+{%endblock%}

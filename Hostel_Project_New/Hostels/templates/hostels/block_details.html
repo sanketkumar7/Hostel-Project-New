@@ -1,0 +1,309 @@
+{%extends 'hostels/base.html' %}
+{%block title%}
+<title>
+    Block Details
+</title>
+{%block head%}
+<style>
+    body{
+        background-color:  #f1edf9;
+    }
+</style>
+{%endblock%}
+{%endblock%}
+{%block body%}
+{%include 'hostels/navbar.html'%}
+<div class="col-5 mx-auto">
+    <div class="card mt-3" style="background-color: #79bbd1;">
+        <div class="card-body">
+            <h4 class="text-center"><b>{{block_name}} Block/Wing </b></h4>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center my-3">
+    <div class="col-3">
+        <div class="form-floating mb-3 ">
+            <input type="text" class="form-control" id="floatingInputSearch" placeholder="name@example.com">
+            <label for="floatingInput">Search Name</label>
+        </div>
+    </div>
+    <div class="col-1 mt-2">
+        <button class="btn btn-primary form-control" onclick="find_the_person()">Search</button>
+    </div>
+</div>
+
+<script>
+    function find_the_person(){
+        let person_name=document.getElementById('floatingInputSearch').value;
+        let beds=document.querySelectorAll('.beds')
+        beds.forEach(bed=>{
+            let title=bed.getAttribute('title');
+            if (title.toLocaleLowerCase()==person_name.toLocaleLowerCase()){
+                let card = bed.closest('.card');
+            card.style.backgroundColor = '#e7e0f6';
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+                card.style.backgroundColor = '#b292f8';  // Reset to default color
+            }, 10000);  // 10000 milliseconds = 10 seconds
+            }
+        });
+    }
+</script>
+
+<div class="row mx-2 justify-content-center">
+    {% for room_no, room_data in rooms.items %}
+        <div class="col-2 my-3">
+            <div class="card" style="background-color: #b292f8;">
+                <div class="card-body">
+                    <div class="row">
+                        {% for bed in room_data.beds %}
+                            <div class="col-4 text-center">
+                                <button {%if bed.bed_status == 'booked' %} class="btn btn-danger my-1 beds" {%else%} class="btn btn-success my-1" {%endif%} onclick="feed_details_to_modal('{{ room_no }}', '{{ bed.bed_no }}','{{bed.id}}','{{bed.bed_status}}','{{room_data.total_beds}}')" title="{%if bed.bed_status == 'booked' %}{{bed.person_name}}{%else%}Available{%endif%}" data-bs-toggle="modal" data-bs-target="#addPersonModal">{{ bed.bed_no }}</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="row">
+                        <span class="text-end"><b>Room No.{{ room_no }}</b></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+<script>
+    function feed_details_to_modal(room_no,bed_no,bed_id,bed_status,total_beds){
+        document.getElementById('room_no_modal').innerText=room_no;
+        document.getElementById('bed_no_modal').innerText=bed_no;
+        document.getElementById('bed_id_input').value=bed_id;
+
+        // clear input values and error text.
+        document.getElementById('floatingInputPersonName').value='';
+        document.getElementById('floatingInputAge').value='';
+        document.getElementById('floatingInputPayment').value='';
+        document.getElementById('person_name_error').innerText='';
+        document.getElementById('age_error').innerText='';
+        document.getElementById('payment_given_error').innerText='';
+        document.getElementById('enrolled_date').innerText='';
+        if(bed_status=='booked'){
+            document.getElementById('add_person_btn_modal').hidden=true;
+            document.getElementById('delete_person_btn_modal').hidden=false;
+            document.getElementById('update_person_btn_modal').hidden=false;
+            $.post('{%url "retrieve_bed_details" %}', { bed_id:bed_id }, function(response) {
+                if(response.detail_retrieve){
+                    document.getElementById('floatingInputPersonName').value=response.person_name;
+                    document.getElementById('floatingInputAge').value=response.age;
+                    document.getElementById('floatingInputPayment').value=response.payment_given;
+                    document.querySelector('#modal_enrolled_date_div').hidden=false;
+                    document.getElementById('enrolled_date').innerText=response.added_date;
+                    // document.getElementById('floatingInputPersonName').readOnly=true;
+                    // document.getElementById('floatingInputAge').readOnly=true;
+                    // document.getElementById('floatingInputPayment').readOnly=true;
+                }
+            });
+        }
+        else{
+            document.getElementById('update_person_btn_modal').hidden=true;
+            document.getElementById('add_person_btn_modal').hidden=false;
+            document.getElementById('delete_person_btn_modal').hidden=true;
+            document.querySelector('#modal_enrolled_date_div').hidden=true;
+            // document.getElementById('floatingInputPersonName').readOnly=false;
+            // document.getElementById('floatingInputAge').readOnly=false;
+            // document.getElementById('floatingInputPayment').readOnly=false;
+        }
+
+        if(bed_no >= Number(total_beds)){
+            document.getElementById('add_bed_btn_modal').hidden=false;
+            if(bed_status == 'booked' || Number(total_beds)==1) {
+                document.getElementById('remove_bed_btn_modal').hidden=true;
+            }
+            else{
+                document.getElementById('remove_bed_btn_modal').hidden=false;
+            }
+            
+        }
+        else{
+            document.getElementById('add_bed_btn_modal').hidden=true;
+            document.getElementById('remove_bed_btn_modal').hidden=true;
+        }
+
+    }
+</script>
+
+<div class="modal fade" id="addPersonModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Enrole Person</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">         
+                <div class="container">
+                    <input type="text" name="bed_id" id="bed_id_input" value="" hidden>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="floatingInputPersonName" placeholder="Name">
+                        <label for="floatingInput">Person Name</label>
+                        <span class="text-danger mb-2" id="person_name_error"></span>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="floatingInputAge" placeholder="Age">
+                        <label for="floatingInput">Age</label>
+                        <span class="text-danger mb-2" id="age_error"></span>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="floatingInputPayment" placeholder="payment">
+                        <label for="floatingInput">Payment Given</label>
+                        <span class="text-danger mb-2" id="payment_given_error"></span>
+                    </div>
+                </div>
+                <div class="row text-center">
+                    <div class="col">
+                        Room No. <span id="room_no_modal" class="fw-bold"></span>
+                    </div>
+                    <div class="col">
+                        Bed No. <span id="bed_no_modal"class="fw-bold"></span>
+                    </div>
+                </div>
+                <div class="row mt-3 text-center" id="modal_enrolled_date_div" hidden>
+                    <div class="col">
+                        Enrolled Date.&nbsp; <span class="fw-bold" id="enrolled_date"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="remove_bed_btn_modal" class="btn btn-danger" onclick="remove_bed_from_room()">Remove Bed</button>
+                <button type="button" id="add_bed_btn_modal" class="btn btn-primary" onclick="add_bed_to_room()">Add Bed</button>
+                <button type="button" id="add_person_btn_modal" class="btn btn-primary" onclick="add_person_to_hostel()">Add Person</button>
+                <button type="button" id="update_person_btn_modal" class="btn btn-primary" onclick="update_person_to_hostel()">Update Details</button>
+                <button type="button" id="delete_person_btn_modal" class="btn btn-danger" onclick="delete_person_to_hostel()">Deallocate Person</button>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<script>
+    function add_person_to_hostel(){
+        const person_name= document.getElementById('floatingInputPersonName').value;
+        const age=document.getElementById('floatingInputAge').value;
+        const payment=document.getElementById('floatingInputPayment').value;
+        const bed_id=document.getElementById('bed_id_input').value;
+        if(confirm("Are you sure? Add person "+person_name+' to hostel.'))
+            $.post('{%url "add_person_to_bed" %}', { person_name: person_name, age: age,payment:payment,bed_id:bed_id }, function(response) {
+                if(response.error){
+                    if(response.errors.includes('person_name1')){
+                        document.getElementById('person_name_error').innerText='Person Name should be start with letter and can contain digit as well, max length 15 allowed.';
+                    }
+                    else if(response.errors.includes('person_name2')){
+                        document.getElementById('person_name_error').innerText='Peroson Name already exists.';
+                    }
+                    else{
+                        document.getElementById('person_name_error').innerText='';
+                    }
+                    if(response.errors.includes('age')){
+                        document.getElementById('age_error').innerText='Invalid input. Age can be 5 to 100.';
+                    }
+                    else{
+                        document.getElementById('age_error').innerText='';
+                    }
+                    if(response.errors.includes('payment_given')){
+                        document.getElementById('payment_given_error').innerText='Payment must be number and . allowed.';
+                    }
+                    else{
+                        document.getElementById('payment_given_error').innerText='';
+                    }
+                }else{
+                    if(response.add_person){
+                        alert('Person '+person_name+' added Successfully.');
+                        location.reload();
+                    }
+                }
+            });
+    }
+
+    function update_person_to_hostel(){
+        const person_name= document.getElementById('floatingInputPersonName').value;
+        const age=document.getElementById('floatingInputAge').value;
+        const payment=document.getElementById('floatingInputPayment').value;
+        const bed_id=document.getElementById('bed_id_input').value;
+        if(confirm("Are you sure? update person "+person_name+' to hostel.'))
+            $.post('{%url "update_person_to_bed" %}', { person_name: person_name, age: age,payment:payment,bed_id:bed_id }, function(response) {
+                if(response.error){
+                    if(response.errors.includes('person_name1')){
+                        document.getElementById('person_name_error').innerText='Person Name should be start with letter and can contain digit as well, max length 15 allowed.';
+                    }
+                    else if(response.errors.includes('person_name2')){
+                        document.getElementById('person_name_error').innerText='Peroson Name already exists.';
+                    }
+                    else{
+                        document.getElementById('person_name_error').innerText='';
+                    }
+                    if(response.errors.includes('age')){
+                        document.getElementById('age_error').innerText='Invalid input. Age can be 5 to 100.';
+                    }
+                    else{
+                        document.getElementById('age_error').innerText='';
+                    }
+                    if(response.errors.includes('payment_given')){
+                        document.getElementById('payment_given_error').innerText='Payment must be number and . allowed.';
+                    }
+                    else{
+                        document.getElementById('payment_given_error').innerText='';
+                    }
+                }else{
+                    if(response.add_person){
+                        alert('Person '+person_name+' updated Successfully.');
+                        location.reload();
+                    }
+                }
+            });
+    }
+
+    function delete_person_to_hostel(){
+        const person_name= document.getElementById('floatingInputPersonName').value;
+        const bed_id=document.getElementById('bed_id_input').value;
+        if(confirm("Are you sure? Deallocate person "+person_name+' from hostel.'))
+            $.post('{%url "deallocate_person_from_bed" %}', { person_name: person_name,bed_id:bed_id }, function(response) {
+                if(response.error){
+                    alert('Person already deallocated or please contact developer.')
+                }else{
+                    if(response.deallocate_person){
+                        alert('Person '+person_name+' deallocated Successfully.');
+                        location.reload();
+                    }
+                }
+            });
+    }
+
+    function add_bed_to_room(){
+        const bed_id=document.getElementById('bed_id_input').value;
+        if(confirm("Are you sure, to Add bed?"))
+            $.post('{%url "add_bed_to_room" %}', { bed_id:bed_id }, function(response) {
+                if(response.bed_added){
+                    alert('Bed Added Successfully.');
+                    location.reload();
+                }
+                else{
+                    alert('Something went wrong... contact developer.')
+                }
+            });
+    }
+
+    function remove_bed_from_room(){
+        const bed_id=document.getElementById('bed_id_input').value;
+        if(confirm("Are you sure, to remove bed?"))
+            $.post('{%url "remove_bed_from_room" %}', { bed_id:bed_id }, function(response) {
+                if(response.bed_removed){
+                    alert('Bed removed Successfully.');
+                    location.reload();
+                }
+                else{
+                    alert('Something went wrong... contact developer.')
+                }
+            });
+    }
+</script>
+
+
+
+{%endblock%}

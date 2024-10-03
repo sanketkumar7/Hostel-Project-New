@@ -1,0 +1,44 @@
+{%extends 'hostels/base.html'%}
+{%load custom_filters%}
+{%block title%}
+<title>
+    Registration
+</title>
+{%endblock%}
+{%block head%}
+<style>
+    body{
+        background-color: #f7f6fa;
+    }
+    .rounded-corners { 
+        background-color: #e6ddff;
+        border: 1px solid #ccc; 
+        border-radius: 15px; padding: 20px; 
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
+        }
+</style>
+{%endblock%}
+
+{%block body%}
+<div class="col-5 mx-auto rounded-corners mt-3">
+    <h5 class="text-center">Registration</h5>
+    <form action="" method="post">
+        {% csrf_token %}
+        {%for field in form%}
+        <div>&nbsp;&nbsp;{{ field.label|title }}</div> 
+        {{ field|add_form_control}}
+        <span class="text-secondary fw-bold">{{ field.errors }}</span>
+        {%endfor%}
+        <div class="row">
+            <div class="col-5 offset-3">
+                <button type="submit" class="form-control mt-2">Register Now !!!</button>
+            </div>
+            <div class="col-2 mt-3 ">
+                <a href="{%url 'sign_in_page' %}">Back</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+{%endblock%}

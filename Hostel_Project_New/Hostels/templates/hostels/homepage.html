@@ -1,0 +1,237 @@
+{%extends 'hostels/base.html' %}
+{%block title%}
+<title>
+    Dashboard
+</title>
+{%endblock%}
+{%block body%}
+{%include 'hostels/navbar.html'%}
+<div class="col-5 mx-auto">
+    <div class="card mt-3" style="background-color: #79bbd1;">
+        <div class="card-body">
+            <h4 class="text-center"><b>{{request.session.ActiveHostelName}} Hostel </b></h4>
+        </div>
+    </div>
+</div>
+<div class="row container mx-auto">
+    {%for block in blocks%}
+        <div class="col-4 my-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col text-center">
+                            <i class="fa fa-university fs-1" aria-hidden="true"></i>
+                            <h5><b>{{block.block_name}}</b></h5>
+                            <a href="{%url 'view_block_page' block.id block.user_id%}" title="View"><span class="fw-bold">View</span>&nbsp;<i class="fa fa-arrow-circle-o-right mt-1 fs-5" aria-hidden="true"></i></a>
+                            &nbsp;&nbsp;<a href="#" class="fs-5" style="color: black;" onclick="fill_edit_block_modal('{{block.id}}','{{block.user_id}}','{{block.block_name}}')" title="Edit Block" data-bs-toggle="modal" data-bs-target="#EditBlockModal"><i class="fa fa-pencil mt-1" aria-hidden="true"></i></a>
+                            &nbsp;<a href="{%url 'delete_block_page' block.id block.user_id %}" onclick="return confirm('Are you sure,You want to delete {{block.block_name}}?')" class="fs-5" style="color: red;" title="Delete {{block.block_name}}"><i class="fa fa-trash mt-1" aria-hidden="true"></i></a>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <h5>
+                                    <b>Beds:</b>
+                                    <span class="text-success">&nbsp;{{block.available_beds}}</span>
+                                    <b>/</b>
+                                    <span>{{block.total_beds}}</span>
+                                </h5>
+                            </div>
+                            <div class="row">
+                                <h5><b>Persons : <span class="text-danger">{{block.booked_beds}}</span></b></h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {%endfor%}
+    <!-- Modal -->
+
+<script>
+    function fill_edit_block_modal(block_id,user_id,block_name){
+        document.getElementById("floating_edit_block_name").value=block_name;
+        document.getElementById('edit_block_id').innerText=block_id;
+        document.getElementById('edit_user_id').innerText=user_id;
+        document.getElementById('edit_block_name_error').innerText='';
+    }
+</script>
+<div class="modal fade" id="EditBlockModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Edit Block :</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-floating mb-3">
+                <input type="text" name="block_name" class="form-control" id="floating_edit_block_name" placeholder="name@example.com">
+                <label for="floatingInput">Block Name</label>
+                <span class="text-danger mb-2" id="edit_block_name_error"></span>
+            </div>
+            <div class="form-floating mb-3" hidden>
+                <h5 id="edit_block_id"></h5>
+                <h5 id="edit_user_id"></h5>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" onclick="update_block_name()">Update Block Name</button>
+        </div>
+        </div>
+    </div>
+    </div>
+</div>
+<script>
+    function update_block_name(){
+        const block_name=document.getElementById("floating_edit_block_name").value;
+        const block_id=document.getElementById('edit_block_id').innerText;
+        const user_id=document.getElementById('edit_user_id').innerText;
+        if(confirm('are you sure, You want to change the block name?')){
+            $.post('{%url "update_block_name" %}', {block_id:block_id,user_id:user_id,block_name:block_name, }, function(response) {
+					        if (response.update){
+                                document.getElementById('edit_block_name_error').innerText='';
+                                alert(`Block Name ${block_name} Updated Successfully.`);    
+                                location.reload();
+                            }
+                            else if(response.error)
+                                if(response.error_txt){
+                                    document.getElementById('edit_block_name_error').innerText=response.error_txt;
+                                }
+                                else{
+                                    document.getElementById('edit_block_name_error').innerText='';
+                                }
+					});
+
+        }
+    }
+</script>
+<div class="row container mt-3 mx-auto">
+    <div class="col-2">
+        <div class="card">
+            <div class="card-body text-center">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="clear_add_block_fields()">
+                    <h5>
+                        <b>Add Block</b>
+                    </h5>
+                </a>
+            </div>
+        </div>
+    </div>
+  <!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Block Details</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-floating mb-3">
+                    <input type="text" name="block_name" class="form-control" id="floating_block_name" placeholder="name@example.com">
+                    <label for="floatingInput">Block Name</label>
+                    <span class="text-danger mb-2" id="block_name_error"></span>
+                </div>
+                <div class="form-floating mb-3">
+                    <input type="number" name="total_rooms" min="1" max="1000" class="form-control" id="floating_total_rooms" placeholder="Total Rooms">
+                    <label for="floatingPassword">Total Rooms (Block Size)</label>
+                    <span class="text-danger mb-2" id="total_rooms_error"></span>
+                </div>
+                <div class="form-floating mb-3">
+                    <input type="number" name="room_strength" min="1" max="10" class="form-control" id="floating_room_strength" placeholder="Room Strength">
+                    <label for="floatingInput">Each Room Strength</label>
+                    <span class="text-danger mb-2" id="room_strength_error"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary" onclick="add_block_func()">Add Block</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function clear_add_block_fields(){
+        document.getElementById("floating_block_name").value='';
+        document.getElementById('floating_total_rooms').value='';
+        document.getElementById('floating_room_strength').value='';
+        document.getElementById('block_name_error').innerText='';
+        document.getElementById('total_rooms_error').innerText='';
+        document.getElementById('room_strength_error').innerText='';
+
+    }
+    function add_block_func(){
+        const block_name=document.getElementById("floating_block_name").value;
+        const total_rooms=document.getElementById('floating_total_rooms').value;
+        const room_strength=document.getElementById('floating_room_strength').value;
+					
+					$.post('{%url "ajax_add_block_details" %}', { 
+                        block_name: block_name, 
+                        total_rooms: total_rooms,
+                        room_strength:room_strength, 
+                    }, function(response) {
+                        if(response.add_block){
+                            alert(block_name+' block created successfully.')
+                            location.reload();
+                        }
+                        else if(response.error){
+                            if (response.errors.includes('block_name1')){
+                                document.getElementById('block_name_error').innerText='Block Name must start with letter and can contain digits, max size allowed 12.';
+                            }
+                            else if (response.errors.includes('block_name2')){
+                                document.getElementById('block_name_error').innerText='Block Name '+block_name+' already Exists.';
+                            }
+                            else{
+                                document.getElementById('block_name_error').innerText='';
+                            }
+                            if(response.errors.includes('total_rooms')){
+                                document.getElementById('total_rooms_error').innerText='Invalid Input. Total Rooms must be within 0 to 1000 range.';
+                            }
+                            else{
+                                document.getElementById('total_rooms_error').innerText='';
+                            }
+                            if(response.errors.includes('room_strength')){
+                                document.getElementById('room_strength_error').innerText='Invalid Input. Room Strength must be within 0 to 11 range.';
+                            }
+                            else{
+                                document.getElementById('room_strength_error').innerText='';
+                            }
+                        }
+					});
+
+    }
+</script>
+    <div class="col-2">
+        <div class="card">
+            <div class="card-body text-center">
+                <a href="{%url 'all_enrolled_persons'%}">
+                    <h5>
+                        <b>All Enrolled</b>
+                    </h5>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-2">
+        <div class="card">
+            <div class="card-body text-center">
+                <a href="{%url 'all_revenue'%}">
+                    <h5>
+                        <b>Revenue</b>
+                    </h5>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-2">
+        <div class="card">
+            <div class="card-body text-center">
+                <a href="{%url 'all_leaved_persons'%}">
+                    <h5>
+                        <b>Leaved</b>
+                    </h5>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{%endblock%}

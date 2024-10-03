@@ -1,0 +1,396 @@
+{% extends 'hostels/base.html'  %}
+{%block title%}
+<title>
+    In Out Management
+</title>
+{%endblock%}
+{%block head%}
+<style>
+    body{
+        background-color:  #f1edf9;
+    }
+</style>
+<style>
+    .calendar-container {
+        width: 250px;
+        margin: auto;
+        text-align: center;
+    }
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .calendar-header div {
+        cursor: pointer;
+        font-weight: bold;
+    }
+    .calendar-header span {
+        font-size: 20px;
+    }
+    .calendar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+    }
+    .calendar div {
+        padding: 10px;
+        text-align: center;
+        border: 1px solid #ccc;
+        cursor: pointer;
+    }
+    .calendar .header {
+        font-weight: bold;
+        cursor: default;
+    }
+    .selected {
+        background-color: #007bff;
+        color: white;
+    }
+    .today {
+        background-color: #f0ad4e;
+        color: white;
+    }
+</style>
+
+{%endblock%}
+{%block body%}
+{%include 'hostels/navbar.html'%}
+<div class="col-5 mx-auto">
+    <div class="card mt-3" style="background-color: #79bbd1;">
+        <div class="card-body">
+            <h4 class="text-center"><b>In Out</b></h4>
+        </div>
+    </div>
+</div>
+<div class="row mt-2">
+    <div class="col-4">
+        <button class="btn btn-primary form-control m-2" data-bs-toggle="modal" data-bs-target="#inModal">In Entry</button>
+    </div>
+  
+  <!-- Modal -->
+  <div class="modal fade" id="inModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+            <div class="modal-body">
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="person_name_inmodal" placeholder="name@example.com" onkeyup="person_details()" required>
+                    <label for="floatingInput">Person Name</label>
+                    <span class="text-danger" id="person_name_inmodal_error"></span>
+                </div>
+                <div class="row">
+                    <div class="col offset-2">
+                        <h5>Block Name -</h5>
+                        <h5>Room No. -</h5>
+                        <h5>Bed No. -</h5>
+                        <h5>Age -</h5>
+                    </div>
+                    <div class="col">
+                        <h5 id="block_name_inmodal" class="fw-bold"></h5>
+                        <h5 id="room_no_inmodal" class="fw-bold"></h5>
+                        <h5 id="bed_no_inmodal" class="fw-bold"></h5>
+                        <h5 id="age_inmodal" class="fw-bold"></h5>
+                        <input type="text" id="bed_id_inmodal" value="" hidden>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" onclick="in_entry()" class="btn btn-primary">In Entry</button>
+            </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    function person_details(){
+        const person_name=document.getElementById('person_name_inmodal').value;
+        const error=document.getElementById("person_name_inmodal_error");
+        const block_name=document.getElementById("block_name_inmodal");
+        const room_no=document.getElementById("room_no_inmodal");
+        const bed_no=document.getElementById("bed_no_inmodal");
+        const bed_id=document.getElementById("bed_id_inmodal");
+        const age=document.getElementById('age_inmodal');
+        block_name.innerHTML='';
+        room_no.innerHTML='';
+        bed_no.innerHTML='';
+        bed_id.value=''
+        age.innerHTML=''
+        $.post("{%url 'in_modal_retrieve_details' %}", { person_name: person_name }, function(response) {
+					        if(response.details){
+                                error.innerHTML='';
+                                block_name.innerHTML=response.block_name;
+                                room_no.innerHTML=response.room_no;
+                                bed_no.innerHTML=response.bed_no;
+                                age.innerHTML=response.age;
+                                bed_id.value=response.bed_id;
+                            }
+                            else{
+                                error.innerHTML=response.error;
+                            }
+					});
+
+    }
+
+    function in_entry(){
+        const bed_id=document.getElementById("bed_id_inmodal").value;
+        const person_name=document.getElementById('person_name_inmodal').value;
+        const error=document.getElementById("person_name_inmodal_error");
+        let currentDate = new Date();
+        let date = currentDate.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+        let time = currentDate.toTimeString().split(' ')[0]; // Format: HH:MM:SS
+        if(error.innerText=="" && person_name!=""){
+            $.post('{%url "in_out_in_entry" %}', { 
+                person_name: person_name, 
+                bed_id:bed_id, 
+                date: date, 
+                time: time   
+            }, function(response) {
+                if(response.in_entry){
+                    alert(`In entry added for ${person_name} at ${date}, ${time}.`);
+                    location.reload();
+                }
+                if(response.error){
+                    alert(response.error);
+                }
+					});
+        }
+
+    }
+  </script>
+    <div class="col-4">
+        <button class="btn btn-danger form-control m-2" onclick="clear_out_modal()" data-bs-toggle="modal" data-bs-target="#outEntryModal">Out Entry</button>
+    </div>
+</div>
+  
+  <!-- Modal -->
+  <div class="modal fade" id="outEntryModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="person_name_outmodal" placeholder="name@example.com" onkeyup="person_details_out()" required>
+                <label for="floatingInput">Person Name</label>
+                <span class="text-danger" id="person_name_outmodal_error"></span>
+            </div>
+            <div class="row">
+                <div class="col offset-2">
+                    <h5>Block Name -</h5>
+                    <h5>Room No. -</h5>
+                    <h5>Bed No. -</h5>
+                    <h5>Age -</h5>
+                </div>
+                <div class="col">
+                    <h5 id="block_name_outmodal" class="fw-bold"></h5>
+                    <h5 id="room_no_outmodal" class="fw-bold"></h5>
+                    <h5 id="bed_no_outmodal" class="fw-bold"></h5>
+                    <h5 id="age_outmodal" class="fw-bold"></h5>
+                    <input type="text" id="bed_id_outmodal" value="" hidden>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-danger" onclick="save_out_entry()">Out Entry</button>
+        </div>
+      </div>
+    </div>
+</div>
+<script>
+    function clear_out_modal(){
+        const person_name=document.getElementById('person_name_outmodal');
+        const error=document.getElementById('person_name_outmodal_error');
+        const block_name=document.getElementById('block_name_outmodal');
+        const room_no=document.getElementById('room_no_outmodal');
+        const bed_no=document.getElementById('bed_no_outmodal');
+        const age= document.getElementById('age_outmodal');
+        const bed_id=document.getElementById('bed_id_outmodal');
+        person_name.value='';
+        block_name.innerHTML='';
+        room_no.innerHTML='';
+        bed_no.innerHTML='';
+        bed_id.value=''
+        age.innerHTML=''
+    }
+    function person_details_out(){
+        const person_name=document.getElementById('person_name_outmodal').value;
+        const error=document.getElementById('person_name_outmodal_error');
+        const block_name=document.getElementById('block_name_outmodal');
+        const room_no=document.getElementById('room_no_outmodal');
+        const bed_no=document.getElementById('bed_no_outmodal');
+        const age= document.getElementById('age_outmodal');
+        const bed_id=document.getElementById('bed_id_outmodal');
+        block_name.innerHTML='';
+        room_no.innerHTML='';
+        bed_no.innerHTML='';
+        bed_id.value=''
+        age.innerHTML=''
+        $.post("{%url 'in_modal_retrieve_details' %}", { person_name: person_name }, function(response) {
+					        if(response.details){
+                                error.innerHTML='';
+                                block_name.innerHTML=response.block_name;
+                                room_no.innerHTML=response.room_no;
+                                bed_no.innerHTML=response.bed_no;
+                                age.innerHTML=response.age;
+                                bed_id.value=response.bed_id;
+                            }
+                            else{
+                                error.innerHTML=response.error;
+                            }
+					});
+
+
+    }
+    function save_out_entry(){
+        const bed_id=document.getElementById("bed_id_outmodal").value;
+        console.log(bed_id);
+        const person_name=document.getElementById('person_name_outmodal').value;
+        const error=document.getElementById("person_name_outmodal_error");
+        let currentDate = new Date();
+        let date = currentDate.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+        let time = currentDate.toTimeString().split(' ')[0]; // Format: HH:MM:SS
+        if(error.innerText=="" && person_name!=""){
+            $.post('{%url "in_out_out_entry" %}', { 
+                person_name: person_name, 
+                bed_id:bed_id, 
+                date: date, 
+                time: time   
+            }, function(response) {
+                if(response.out_entry){
+                    alert(`Out entry added for ${person_name} at ${date}, ${time}.`);
+                    location.reload();
+                }
+                if(response.error){
+                    alert(response.error);
+                }
+					});
+ 
+        }
+    }
+</script>
+<div class="row mt-2">
+    <div class="col-8  mt-4">
+        <table class="table table-striped text-center">
+            <thead>
+                <th>Sr.No.</th>
+                <th>Person_Name</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Action</th>
+            </thead>
+            <tbody>
+            {% for each in in_out%}
+                <tr>
+                    <td>{{forloop.counter}}</td>
+                    <td>{{each.person_name}}</td>
+                    <td>{{each.in_out_status}}</td>
+                    <td>{{each.date}}</td>
+                    <td>{{each.time}}</td>
+                    <td><a href="{%url 'delete_in_out' each.id%}">Delete</a></td>
+                </tr>
+            {%endfor%}
+            </tbody>
+        </table>
+    </div>
+    <div class="col-3">
+        <div class="calendar-container">
+            <div class="calendar-header justify-content-center">
+                <div id="prevMonth">Prev &nbsp;</div>
+                <span id="monthYear"></span>
+                <div id="nextMonth">&nbsp;&nbsp;Next</div>
+            </div>
+            <div class="calendar" id="calendar">
+                <div class="header">Sun</div>
+                <div class="header">Mon</div>
+                <div class="header">Tue</div>
+                <div class="header">Wed</div>
+                <div class="header">Thu</div>
+                <div class="header">Fri</div>
+                <div class="header">Sat</div>
+            </div>
+        </div>  
+    </div>
+</div>
+<script>
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+
+    function updateCalendar() {
+        const calendar = document.getElementById('calendar');
+        const monthYear = document.getElementById('monthYear');
+        calendar.innerHTML = `
+            <div class="header">Sun</div>
+            <div class="header">Mon</div>
+            <div class="header">Tue</div>
+            <div class="header">Wed</div>
+            <div class="header">Thu</div>
+            <div class="header">Fri</div>
+            <div class="header">Sat</div>
+        `;
+
+        const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const today = new Date();
+
+        const monthName = new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' });
+        monthYear.textContent = `${monthName} ${currentYear}`;
+
+        for (let i = 0; i < firstDay; i++) {
+            calendar.innerHTML += `<div></div>`;
+        }
+
+        for (let i = 1; i <= daysInMonth; i++) {
+            const dayDiv = document.createElement('div');
+            dayDiv.textContent = i;
+            
+            if (i === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
+                dayDiv.classList.add('today');
+            }
+
+            dayDiv.addEventListener('click', function() {
+                clearSelected();
+                dayDiv.classList.add('selected');
+                window.location.href = `/in-out/${i}-${monthName}-${currentYear}`;
+            });
+
+            calendar.appendChild(dayDiv);
+        }
+    }
+
+    function clearSelected() {
+        const days = document.querySelectorAll('.calendar div');
+        days.forEach(day => day.classList.remove('selected'));
+    }
+
+    document.getElementById('prevMonth').addEventListener('click', function() {
+        currentMonth--;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        }
+        updateCalendar();
+    });
+
+    document.getElementById('nextMonth').addEventListener('click', function() {
+        currentMonth++;
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        updateCalendar();
+    });
+
+    updateCalendar();
+</script>   
+
+
+{%endblock%}
