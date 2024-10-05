@@ -101,7 +101,6 @@ def all_enrolled_persons_view(request):
     for each in persons:
         block=Blocks.objects.get(id=each['block_id'])
         each['block_name']=block.block_name
-        print(each)
     context={
         'persons':persons
     }
@@ -220,14 +219,15 @@ def in_out_view(request,date=None):
         pass
     return render(request,'hostels/in_out_page.html',context)
 
+@login_check
 def delete_in_out_view(request,id):
     username=request.session.get('ActiveUserUsername','')
     user=Members.objects.get(username=username)
     in_out_row = In_out.objects.get(user=user,id=id)
-    print()
     in_out_row.delete()
     return in_out_view(request,date=in_out_row.date.strftime("%d-%B-%Y"))
 
+@login_check
 def all_visitors_view(request,date=None):
     username=request.session.get('ActiveUserUsername','')
     user=Members.objects.get(username=username)
@@ -242,6 +242,7 @@ def all_visitors_view(request,date=None):
         date_visitors=visitors.objects.filter(user=user,in_time__range=(parsed_date,tommarrow)).values().order_by('-id')
         context={'visitors':date_visitors}
     return render(request,'hostels/visitors.html',context)
+@login_check
 def visitor_out_time_view(request,id):
     username=request.session.get('ActiveUserUsername','')
     user=Members.objects.get(username=username)
@@ -249,7 +250,7 @@ def visitor_out_time_view(request,id):
     visitor.out_time=datetime.now()
     visitor.save()
     return all_visitors_view(request)
-
+@login_check
 def all_revenue_view(request):
     username=request.session.get('ActiveUserUsername','')
     user=Members.objects.get(username=username)
@@ -274,7 +275,7 @@ def all_revenue_view(request):
 
 # ajax requests
 
-
+@login_check
 @csrf_exempt
 def ajax_request_add_block_details_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -318,6 +319,7 @@ def ajax_request_add_block_details_view(request):
             'add_block':True
         })
 
+@login_check
 @csrf_exempt
 def ajax_request_add_person_to_bed_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -354,6 +356,7 @@ def ajax_request_add_person_to_bed_view(request):
             'errors':errors,
             'add_person':True
         })
+@login_check
 @csrf_exempt  
 def ajax_request_update_person_to_bed_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -392,6 +395,7 @@ def ajax_request_update_person_to_bed_view(request):
             'add_person':True
         })
 
+@login_check
 @csrf_exempt
 def ajax_request_deallocate_person_from_bed_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -417,6 +421,7 @@ def ajax_request_deallocate_person_from_bed_view(request):
             'deallocate_person':False
         })
 
+@login_check
 @csrf_exempt
 def ajax_request_retrive_bed_details_view(request):
     bed_id=request.POST.get('bed_id','')
@@ -429,6 +434,7 @@ def ajax_request_retrive_bed_details_view(request):
         'added_date':bed.added_date,
     })
 
+@login_check
 @csrf_exempt
 def ajax_request_update_block_name_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -473,6 +479,7 @@ def ajax_request_update_block_name_view(request):
             'error_txt':'Block does not exists.',
             'update':False
         }) 
+@login_check
 @csrf_exempt
 def ajax_request_add_bed_to_room_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -490,6 +497,7 @@ def ajax_request_add_bed_to_room_view(request):
     else:
         return JsonResponse({'bed_added':True})
     
+@login_check
 @csrf_exempt
 def ajax_request_remove_bed_from_room_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -503,6 +511,7 @@ def ajax_request_remove_bed_from_room_view(request):
     else:
         return JsonResponse({'bed_removed':True})
     
+@login_check
 @csrf_exempt
 def ajax_request_retrieve_person_details_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -531,6 +540,7 @@ def ajax_request_retrieve_person_details_view(request):
             "error":error,
             'details':False
         })
+@login_check
 @csrf_exempt   
 def ajax_request_add_in_entry_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -546,7 +556,6 @@ def ajax_request_add_in_entry_view(request):
             entries=In_out.objects.filter(user=user,person_name=person_name).values().order_by('-id')
             if entries:
                 last_entry=entries[0]
-                print(last_entry)
                 if last_entry['in_out_status']=="IN":
                     return JsonResponse({
                         'error':f"Person Already IN on {last_entry['date']}, at {last_entry['time']}"
@@ -559,6 +568,7 @@ def ajax_request_add_in_entry_view(request):
     except Exception as e:
         return JsonResponse({'in_entry':False,'error':e})
 
+@login_check
 @csrf_exempt   
 def ajax_request_add_out_entry_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -574,7 +584,7 @@ def ajax_request_add_out_entry_view(request):
             entries=In_out.objects.filter(user=user,person_name=person_name).values().order_by('-id')
             if entries:
                 last_entry=entries[0]
-                print(last_entry)
+               
                 if last_entry['in_out_status']=="OUT":
                     return JsonResponse({
                         'error':f"Person Already OUT on {last_entry['date']}, at {last_entry['time']}"
@@ -587,6 +597,7 @@ def ajax_request_add_out_entry_view(request):
     except Exception as e:
         return JsonResponse({'out_entry':False,'error':e})
     
+@login_check
 @csrf_exempt
 def ajax_request_add_visitor_view(request):
     username=request.session.get('ActiveUserUsername','')
