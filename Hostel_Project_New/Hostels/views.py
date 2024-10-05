@@ -275,7 +275,7 @@ def all_revenue_view(request):
 
 # ajax requests
 
-@login_check
+@login_check 
 @csrf_exempt
 def ajax_request_add_block_details_view(request):
     username=request.session.get('ActiveUserUsername','')
