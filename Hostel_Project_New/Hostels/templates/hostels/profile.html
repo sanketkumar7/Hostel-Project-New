@@ -1,0 +1,74 @@
+{%extends 'hostels/base.html'%}
+{%block title%}
+<title>
+    Profile
+</title>
+{%endblock%}
+{%block body%}
+{%include 'hostels/navbar.html'%}
+<div class="col-5 mx-auto">
+    <div class="card mt-3" style="background-color: #79bbd1;">
+        <div class="card-body">
+            <h4 class="text-center"><b>Profile</b></h4>
+        </div>
+    </div>
+</div>
+
+<div class="row text-center mt-4">
+    <label class="form-label">Username : {{member.username}}</label>
+    <label class="form-label">First Name : {{member.first_name}}</label>
+    <label class="form-label">Last Name : {{member.last_name}}</label>
+    <label class="form-label">Gender : {{member.gender}}</label>
+    <label class="form-label">Age : {{member.age}}</label>
+    <button class="btn btn-primary col-3 mx-auto" data-bs-toggle="modal" data-bs-target="#editModal">Edit</button>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" value="{{member.first_name}}" id="first_name_modal" placeholder="name@example.com">
+                    <label for="floatingInput">First Name</label>
+                </div>
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" value="{{member.last_name}}" id="last_name_modal" placeholder="name@example.com">
+                    <label for="floatingInput">last_name</label>
+                </div>
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" value="{{member.age}}" id="age_modal" placeholder="name@example.com">
+                    <label for="floatingInput">Age</label>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="update_details()">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function update_details(){
+        const first_name=document.getElementById('first_name_modal').value
+        const last_name = document.getElementById('last_name_modal').value;
+        const age = document.getElementById('age_modal').value;
+        $.post('{%url "update_profile" %}', { first_name: first_name,last_name:last_name, age: age }, function(response) {
+					        if(response.updated){
+                                alert(`Details updated successful ${first_name}`)
+                                location.reload()
+                            }
+					});
+
+    }
+</script>
+
+
+
+
+
+{%endblock%}

@@ -18,6 +18,7 @@ urlpatterns=[
     path('all-visitors/<str:date>',views.all_visitors_view,name='all_visitors'),
     path('visitor-out-time/<int:id>',views.visitor_out_time_view,name='visitor_out_time'),
     path('all-revenue',views.all_revenue_view,name='all_revenue'),
+    path('profile',views.member_profile_view,name='member_profile'),
 
     # ajax requests
     path('add-block',views.ajax_request_add_block_details_view,name='ajax_add_block_details'),
@@ -32,5 +33,6 @@ urlpatterns=[
     path('in-out-in-entry',views.ajax_request_add_in_entry_view,name="in_out_in_entry"),
     path('in-out-out-entry',views.ajax_request_add_out_entry_view,name='in_out_out_entry'),
     path('add-visitors',views.ajax_request_add_visitor_view,name='add_visitors_detail'),
+    path('update-profile',views.ajax_request_update_profile_view,name='update_profile')
 
 ]

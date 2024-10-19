@@ -44,7 +44,7 @@ def create_new_account_view(request):
             return response
     return render(request,'hostels/registration.html',{'form':form})
 
-@login_check
+@login_check 
 def set_hostel_view(request):
     context={
         'error':'',
@@ -272,10 +272,15 @@ def all_revenue_view(request):
     context = {'blocks':blocklist}
     return render(request,'hostels/all_revenue.html',context)
 
+def member_profile_view(request):
+    username=request.session.get('ActiveUserUsername','')
+    user=Members.objects.get(username=username) if username else None
+    context={'member':user}
+    return render(request,'hostels/profile.html',context)
 
 # ajax requests
 
-@login_check 
+
 @csrf_exempt
 def ajax_request_add_block_details_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -319,7 +324,7 @@ def ajax_request_add_block_details_view(request):
             'add_block':True
         })
 
-@login_check
+
 @csrf_exempt
 def ajax_request_add_person_to_bed_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -356,7 +361,7 @@ def ajax_request_add_person_to_bed_view(request):
             'errors':errors,
             'add_person':True
         })
-@login_check
+
 @csrf_exempt  
 def ajax_request_update_person_to_bed_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -395,7 +400,7 @@ def ajax_request_update_person_to_bed_view(request):
             'add_person':True
         })
 
-@login_check
+
 @csrf_exempt
 def ajax_request_deallocate_person_from_bed_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -421,7 +426,7 @@ def ajax_request_deallocate_person_from_bed_view(request):
             'deallocate_person':False
         })
 
-@login_check
+
 @csrf_exempt
 def ajax_request_retrive_bed_details_view(request):
     bed_id=request.POST.get('bed_id','')
@@ -434,7 +439,7 @@ def ajax_request_retrive_bed_details_view(request):
         'added_date':bed.added_date,
     })
 
-@login_check
+
 @csrf_exempt
 def ajax_request_update_block_name_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -479,7 +484,7 @@ def ajax_request_update_block_name_view(request):
             'error_txt':'Block does not exists.',
             'update':False
         }) 
-@login_check
+
 @csrf_exempt
 def ajax_request_add_bed_to_room_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -497,7 +502,7 @@ def ajax_request_add_bed_to_room_view(request):
     else:
         return JsonResponse({'bed_added':True})
     
-@login_check
+
 @csrf_exempt
 def ajax_request_remove_bed_from_room_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -511,7 +516,7 @@ def ajax_request_remove_bed_from_room_view(request):
     else:
         return JsonResponse({'bed_removed':True})
     
-@login_check
+
 @csrf_exempt
 def ajax_request_retrieve_person_details_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -540,7 +545,7 @@ def ajax_request_retrieve_person_details_view(request):
             "error":error,
             'details':False
         })
-@login_check
+
 @csrf_exempt   
 def ajax_request_add_in_entry_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -568,7 +573,7 @@ def ajax_request_add_in_entry_view(request):
     except Exception as e:
         return JsonResponse({'in_entry':False,'error':e})
 
-@login_check
+
 @csrf_exempt   
 def ajax_request_add_out_entry_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -597,7 +602,7 @@ def ajax_request_add_out_entry_view(request):
     except Exception as e:
         return JsonResponse({'out_entry':False,'error':e})
     
-@login_check
+
 @csrf_exempt
 def ajax_request_add_visitor_view(request):
     username=request.session.get('ActiveUserUsername','')
@@ -621,3 +626,18 @@ def ajax_request_add_visitor_view(request):
             'error':error,
             'added':True
         })
+
+@csrf_exempt 
+def ajax_request_update_profile_view(request):
+    username=request.session.get('ActiveUserUsername','')
+    user=Members.objects.get(username=username)
+    first_name=request.POST.get('first_name','')
+    last_name=request.POST.get('last_name','')
+    age=request.POST.get('age','')
+    user.first_name=first_name.title()
+    user.last_name=last_name.title()
+    user.age=age
+    user.save()
+    return JsonResponse({
+        'updated':True
+    })
